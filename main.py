@@ -1,5 +1,19 @@
 import pygame,time,sys
 from pygame.locals import *
+pygame.mixer.init()
+#混音器初始化
+
+sound_effect = pygame.mixer.Sound("m.mp3")
+win_effect = pygame.mixer.Sound("win.mp3")
+pause_effect=pygame.mixer.Sound("pause.mp3")
+info_effect=pygame.mixer.Sound("info.mp3")
+exit_effect=pygame.mixer.Sound("exit.mp3")
+happy_effect=pygame.mixer.Sound("happy.mp3")
+bo_effect=pygame.mixer.Sound("bo.mp3")
+
+pygame.mixer.music.load("bgm.mp3")#背景音乐
+
+
 
 Board = []
 Role = 2
@@ -9,16 +23,21 @@ mouse_cursor = pygame.image.load("images/black_piece.png")  #加载鼠标图片
 
 def exit():   #退出游戏
     print("Exit")
+    exit_effect.play()
+    time.sleep(1)
     pygame.quit()
     sys.exit()
 
 def checkRole():    #查看游戏规则
     print("CheckRole")
+    info_effect.play()
     global screen,info,bg0,bg3,bg4,isRun
     isRun=-1
 
 def start():        #开始游戏
     print("Start")
+    bo_effect.play()
+    pygame.mixer.music.play()
     global isRun
     isRun=1
 
@@ -28,6 +47,7 @@ def pause():    #暂停/继续
         print("pause")
     else:
         print("continue")
+    pause_effect.play()
     isRun=isRun*(-2)
 
 class Point():
@@ -36,13 +56,13 @@ class Point():
 
 def initBoard(x,y):     #棋盘初始化
     print("初始化棋盘")
-    for i in range(15):
+    for i in range(15): #总共15行
         rowlist = []
         for j in range(15):
-            pointX,pointY= x+ j*40,y+ i*40
-            p = Point(pointX,pointY,0)
+            pointX,pointY= x+ j*40,y+ i*40  #每一行有15列
+            p = Point(pointX,pointY,0)  #记录每一行与列的交点的坐标
             rowlist.append(p)
-        Board.append(rowlist)
+        Board.append(rowlist)#记录每一行的15个列的坐标
 
 def eventHander():              #事件监视器
     global mouse_cursor,Role,isRun
@@ -52,6 +72,7 @@ def eventHander():              #事件监视器
         if event.type == QUIT:
            exit()
         if event.type == MOUSEBUTTONDOWN:
+
             x,y = pygame.mouse.get_pos()
             i=j=0
             if x>=638 and x<=730 and y>=229 and y<=255: #退出
@@ -67,12 +88,13 @@ def eventHander():              #事件监视器
                 for temp in Board:
                     for point in temp:
                         if x >= point.x - 10 and x <= point.x + 10 and y >= point.y - 10 and y <= point.y + 10:
-                            if point.value == 0 and Role == 1:  # 当棋盘位置为空；棋子类型为白棋
+                            sound_effect.play()
+                            if point.value == 0 and Role == 1:  # 若棋盘位置为空；棋子为白棋
                                 point.value = 1  # 鼠标点击时，棋子为白棋
                                 Judge(i, j, 1)
                                 Role = 2  # 切换角色
                                 mouse_cursor = pygame.image.load("images/black_piece.png")  # 切换鼠标图片（黑白棋子）
-                            elif point.value == 0 and Role == 2:  # 当棋盘位置为空；棋子类型为黑棋
+                            elif point.value == 0 and Role == 2:  # 若棋盘位置为空；棋子为黑棋
                                 point.value = 2  # 鼠标点击时，棋子为黑棋
                                 Judge(i, j, 2)
                                 Role = 1  # 切换角色
@@ -127,15 +149,15 @@ def Judge(i,j,value):
                     Board[y + 4][x + 4].value == value:
                 flag = True
 
-    if flag:               #如果条件成立，证明五子连珠
-        resultFlag = value #获取成立的棋子颜色
+    if flag:
+        resultFlag = value #获取五子连珠的棋子颜色
         print("白子胜利！" if value ==1 else "黑子胜利")
 
 
 def main():
     global Board,resultFlag,isRun,screen,info,bg0,bg3,bg4
 
-    initBoard(27,27)
+    initBoard(27,27)# 初始化棋盘
     pygame.init()     # 初始化游戏环境
     screen = pygame.display.set_mode((780, 620), RESIZABLE, 32)  # 创建游戏窗口 # 第一个参数是元组：窗口的长和宽
 
@@ -151,7 +173,7 @@ def main():
     whiteWin = pygame.image.load("images/white_win.jpg")  # 加载黑棋胜利图片
 
 
-
+    happy_effect.play(-1)
 
     while True:
 
@@ -163,6 +185,8 @@ def main():
             eventHander()
 
         while isRun > 0:                        #开始后界面
+            happy_effect.stop()
+
 
             screen.blit(background, (0, 0))
             screen.blit(bg3, (618, 0))
@@ -195,8 +219,12 @@ def main():
             pygame.display.update()  # 更新视图
 
             if resultFlag > 0:
-                time.sleep(3)
+
+                pygame.mixer.music.stop()
+                win_effect.play()
+                time.sleep(4)
                 resultFlag = 0
+                pygame.mixer.music.play(-1)
 
             eventHander()
         else:
